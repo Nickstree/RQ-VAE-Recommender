@@ -9,7 +9,7 @@ def kmeans_init_(tensor: torch.Tensor, x: torch.Tensor):
     assert x.dim() == 2
 
     with torch.no_grad():
-        k, _ = tensor.shape
+        k, _ = tensor.shape # k就是要分幾類，codebook_size
         kmeans_out = Kmeans(k=k).run(x)
         tensor[:, :] = kmeans_out.centroids[:, :]
 
@@ -31,7 +31,7 @@ class Kmeans:
         self.assignment = None
 
     def _init_centroids(self, x: torch.Tensor) -> None:
-        B, D = x.shape
+        B, D = x.shape # B是batch size, D是input_dim
         init_idx = np.random.choice(B, self.k, replace=False)
         self.centroids = x[init_idx, :]
         self.assignment = None

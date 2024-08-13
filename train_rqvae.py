@@ -1,4 +1,4 @@
-import gin
+#import gin
 
 from accelerate import Accelerator
 from data.movie_lens import MovieLensMovieData
@@ -16,7 +16,7 @@ def cycle(dataloader):
             yield data
 
 
-@gin.configurable
+#@gin.configurable
 def train(
     iterations=500000,
     batch_size=64,
@@ -90,7 +90,7 @@ def train(
 
                 accelerator.backward(loss)
 
-            pbar.set_description(f'loss: {total_loss:.4f}')
+           # pbar.set_description(f'loss: {total_loss:.4f}')
 
             accelerator.wait_for_everyone()
             accelerator.clip_grad_norm_(model.parameters(), max_grad_norm)
@@ -99,7 +99,10 @@ def train(
             scheduler.step()
 
             accelerator.wait_for_everyone()
-            pbar.update(1)
+            if iter % 1000 == 0:
+                pbar.set_description(f'loss: {total_loss:.4f}')
+                pbar.update(1000)
+            #pbar.update(1)
 
 
 if __name__ == "__main__":
