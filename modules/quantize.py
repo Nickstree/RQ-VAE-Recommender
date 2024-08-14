@@ -15,7 +15,7 @@ class Quantize(nn.Module):
     def __init__(
         self,
         embed_dim: int,
-        n_embed: int
+        n_embed: int,
     ) -> None:
         super().__init__()
 
@@ -59,7 +59,6 @@ class Quantize(nn.Module):
             emb = weights @ codebook
         else:
             emb = self.get_item_embeddings(ids)
-
         return QuantizeOutput(
             embeddings=emb,
             ids=ids

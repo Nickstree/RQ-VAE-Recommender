@@ -17,7 +17,8 @@ class MLP(nn.Module):
         input_dim: int,
         hidden_dim: int,
         out_dim: int,
-        normalize: bool = False
+        normalize: bool = False,
+        encode: bool = True
     ) -> None:
         super().__init__()
 
@@ -25,15 +26,37 @@ class MLP(nn.Module):
         self.hidden_dim = hidden_dim
         self.out_dim = out_dim
 
-        self.mlp = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.GELU(),
-            nn.LayerNorm(hidden_dim),
-            nn.Linear(hidden_dim, out_dim),
-            nn.GELU(),
-            L2NormalizationLayer() if normalize else nn.Identity()
-        )
-    
+        # self.mlp = nn.Sequential(
+        #     nn.Linear(input_dim, hidden_dim),
+        #     nn.GELU(),
+        #     nn.LayerNorm(hidden_dim),
+        #     nn.Linear(hidden_dim, out_dim),
+        #     nn.GELU(),
+        #     L2NormalizationLayer() if normalize else nn.Identity()
+        # )
+        if encode is True:
+            self.mlp = nn.Sequential(
+                nn.Linear(input_dim, 512),
+                nn.ReLU(),
+                nn.Linear(512, 256),
+                nn.ReLU(),
+                nn.Linear(256, 128),
+                nn.ReLU(),
+                nn.Linear(128, out_dim),
+                L2NormalizationLayer() if normalize else nn.Identity()
+            )
+        else:
+            self.mlp = nn.Sequential(
+                nn.Linear(input_dim, 128),
+                nn.ReLU(),
+                nn.Linear(128, 256),
+                nn.ReLU(),
+                nn.Linear(256, 512),
+                nn.ReLU(),
+                nn.Linear(512, out_dim),
+                L2NormalizationLayer() if normalize else nn.Identity()
+            )
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         assert x.shape[-1] == self.input_dim, f"Invalid input dim: Expected {self.input_dim}, found {x.shape[-1]}"
         return self.mlp(x)

@@ -30,26 +30,28 @@ class RqVae(nn.Module):
 
         self.input_dim = input_dim
         self.embed_dim = embed_dim
-        self.hidden_dim = hidden_dim
+        self.hidden_dim = hidden_dim # hidden_dim是encoder的hidden layer dim
         self.n_layers = n_layers
         self.codebook_size = codebook_size
         self.commitment_weight = commitment_weight
 
         self.layers = nn.ModuleList(modules=[
-            Quantize(embed_dim=embed_dim, n_embed=codebook_size)
+            Quantize(embed_dim=embed_dim, n_embed=codebook_size) # embed_dim是codebook dim, n_embed是codebook size
             for _ in range(n_layers)
         ])
 
         self.encoder = MLP(
             input_dim=input_dim,
             hidden_dim=hidden_dim,
-            out_dim=embed_dim
+            out_dim=embed_dim,
+            encode=True
         )
 
         self.decoder = MLP(
             input_dim=embed_dim,
             hidden_dim=hidden_dim,
-            out_dim=input_dim
+            out_dim=input_dim,
+            encode=False
         )
 
     def kmeans_init(self, x: torch.Tensor) -> None:
