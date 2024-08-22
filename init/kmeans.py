@@ -7,7 +7,8 @@ from typing import NamedTuple
 def kmeans_init_(tensor: torch.Tensor, x: torch.Tensor):
     assert tensor.dim() == 2
     assert x.dim() == 2
-
+    # print("tensor: ", tensor.shape)
+    # print("x: ", x.shape)
     with torch.no_grad():
         k, _ = tensor.shape # k就是要分幾類，codebook_size
         kmeans_out = Kmeans(k=k).run(x)

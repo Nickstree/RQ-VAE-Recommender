@@ -68,13 +68,13 @@ class RqVae(nn.Module):
 
     def get_semantic_ids(self,
                          x: torch.Tensor,
-                         gumbel_t=0.001) -> torch.Tensor:
+                         gumbel_t=0.001, inference_only=False) -> torch.Tensor:
         res = self.encode(x)
         embs, residuals, sem_ids = [], [], []
 
         for layer in self.layers:
             residuals.append(res)
-            quantized = layer(res, temperature=gumbel_t)
+            quantized = layer(res, temperature=gumbel_t, inference_only=inference_only)
             emb, id = quantized.embeddings, quantized.ids
             res = res - emb
             sem_ids.append(id)
@@ -86,13 +86,16 @@ class RqVae(nn.Module):
             sem_ids=torch.stack(sem_ids, dim=-1)
         )
 
-    def forward(self, x: torch.Tensor, gumbel_t: float) -> torch.Tensor:
-        quantized = self.get_semantic_ids(x, gumbel_t)
-        embs, residuals = quantized.embeddings, quantized.residuals
-        x_hat = self.decode(embs.sum(axis=-1))
+    def forward(self, x: torch.Tensor, gumbel_t: float, inference_only=False) -> torch.Tensor:
+        quantized = self.get_semantic_ids(x, gumbel_t, inference_only)
+        if inference_only:
+            return quantized
+        else:
+            embs, residuals = quantized.embeddings, quantized.residuals
+            x_hat = self.decode(embs.sum(axis=-1))
 
-        reconstuction_loss = ReconstuctionLoss()(x_hat, x)
-        rqvae_loss = RqVaeLoss(self.commitment_weight)(residuals, embs)
-        loss = (reconstuction_loss + rqvae_loss).mean()
+            reconstuction_loss = ReconstuctionLoss()(x_hat, x)
+            rqvae_loss = RqVaeLoss(self.commitment_weight)(residuals, embs)
+            loss = (reconstuction_loss + rqvae_loss).mean()
 
-        return loss
+            return loss
